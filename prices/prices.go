@@ -1,10 +1,10 @@
 package prices
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"strconv"
+
+	"github.com/amirhlashgari/price-calculator/conversion"
+	"github.com/amirhlashgari/price-calculator/filemanager"
 )
 
 type TaxIncludedPriceJob struct {
@@ -19,35 +19,16 @@ because if we don't pass pointer it would be a copy of the struct
 and in this case the InputPrices in the struct won't change after reading from file
 */
 func (job *TaxIncludedPriceJob) LoadData() {
-	file, err := os.Open("prices.txt")
+	lines, err := filemanager.ReadLines("prices.txt")
 	if err != nil {
-		fmt.Println("Could not open prices file", err)
+		fmt.Println(err)
 		return
 	}
 
-	scanner := bufio.NewScanner(file)
-	var lines []string
-
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	err = scanner.Err()
+	prices, err := conversion.StringToFloat(lines)
 	if err != nil {
-		fmt.Println("Reading file content failed", err)
-		file.Close()
+		fmt.Println(err)
 		return
-	}
-
-	prices := make([]float64, len(lines))
-	for lineIndex, line := range lines {
-		floatPrice, err := strconv.ParseFloat(line, 64)
-		if err != nil {
-			fmt.Println("Converting price to float failed", err)
-			file.Close()
-			return
-		}
-
-		prices[lineIndex] = floatPrice
 	}
 
 	job.InputPrices = prices
